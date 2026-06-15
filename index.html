@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalMart - Online Store & Secure Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-50 font-sans text-gray-900 antialiased">
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md shadow-xs border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <a href="#" class="text-2xl font-bold text-indigo-600 tracking-tight">Local<span class="text-gray-800">Mart</span></a>
+                        <div class="hidden md:flex flex-1 max-w-md mx-8">
+                <div class="relative w-full">
+                    <input type="text" id="searchInput" placeholder="Search across 30 local items..." class="w-full bg-gray-100 pl-10 pr-4 py-2 rounded-lg border border-transparent focus:border-indigo-500 focus:bg-white focus:outline-none transition">
+                    <i data-lucide="search" class="absolute left-3 top-2.5 h-5 w-5 text-gray-400"></i>
+                </div>
+            </div>
+               <div class="flex items-center gap-4">
+                <button id="authBtn" onclick="openAuthModal()" class="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-indigo-600 bg-gray-100 hover:bg-indigo-50 px-4 py-2 rounded-xl transition focus:outline-none">
+                    <i data-lucide="user" class="h-5 w-5"></i>
+                    <span id="authBtnText">Login / Sign Up</span>
+                </button>
+                <button onclick="toggleCart()" class="relative p-2 text-gray-600 hover:text-indigo-600 transition focus:outline-none">
+                    <i data-lucide="shopping-cart" class="h-6 w-6"></i>
+                    <span id="cartBadge" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <aside class="w-full lg:w-64 shrink-0 bg-white p-6 rounded-xl border border-gray-100 shadow-xs h-fit lg:sticky lg:top-24">
+                <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <i data-lucide="sliders-horizontal" class="h-5 w-5 text-indigo-600"></i> Filters
+                </h2>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <select id="categoryFilter" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none">
+                        <option value="all">All Categories</option>
+                        <option value="Groceries">Groceries</option>
+                        <option value="Bakery">Bakery</option>
+                        <option value="Dairy">Dairy & Eggs</option>
+                        <option value="Pantry">Pantry Supplies</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                    <select id="sortFilter" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none">
+                        <option value="default">Featured</option>
+                        <option value="low-high">Price: Low to High</option>
+                        <option value="high-low">Price: High to Low</option>
+                    </select>
+                </div>
+            </aside>
+            <section class="flex-1">
+                <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                    </div>
+            </section>
+        </div>
+    </main>
+    <div id="authModal" class="fixed inset-0 z-50 overflow-hidden hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-xs" onclick="closeAuthModal()"></div>
+        <div class="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl relative z-10 animate-scaleUp">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i data-lucide="x" class="h-6 w-6"></i>
+            </button>
+                        <div class="flex border-b border-gray-100 mb-6">
+                <button id="tabLogin" onclick="switchAuthTab('login')" class="flex-1 pb-3 text-center font-bold border-b-2 border-indigo-600 text-indigo-600">Login</button>
+                <button id="tabRegister" onclick="switchAuthTab('register')" class="flex-1 pb-3 text-center font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700">Sign Up</button>
+            </div>
+               <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div id="nameField" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" id="authName" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-indigo-500 bg-gray-50 focus:bg-white transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" id="authEmail" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-indigo-500 bg-gray-50 focus:bg-white transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="authPassword" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-indigo-500 bg-gray-50 focus:bg-white transition">
+                </div>
+                <button type="submit" id="authSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-indigo-600/20 mt-2">
+                    Log In Securely
+                </button>
+            </form>
+        </div>
+    </div>
+    <div id="cartDrawer" class="fixed inset-0 z-50 overflow-hidden hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-xs" onclick="toggleCart()"></div>
+        <div class="absolute inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl flex flex-col">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="shopping-bag" class="text-indigo-600"></i> Your Cart</h2>
+                <button onclick="toggleCart()" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg"><i data-lucide="x"></i></button>
+            </div>
+            <div id="cartItemsList" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+            <div class="p-6 border-t border-gray-100 bg-gray-50">
+                <div class="flex justify-between text-base font-medium text-gray-900 mb-4">
+                    <p>Subtotal</p>
+                    <p id="cartTotal" class="text-xl font-bold text-gray-900">₹0.00</p>
+                </div>
+                <button onclick="checkout()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3.5 px-4 rounded-xl transition shadow-lg">
+                    Proceed to Protected Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 30 Product Dataset
+        const products = [
+            { id: 1, name: "Organic Local Bananas", category: "Groceries", price: 60, image: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=400&q=80", desc: "Fresh organic farm bananas raised locally." },
+            { id: 2, name: "Sweet Seedless Watermelon", category: "Groceries", price: 80, image: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=400&q=80", desc: "Crisp, sweet, and incredibly hydrating local watermelon." },
+            { id: 3, name: "Fresh Hydroponic Lettuce", category: "Groceries", price: 70, image: "https://images.unsplash.com/photo-1622205313162-be1de5b86a88?auto=format&fit=crop&w=400&q=80", desc: "Crunchy, pesticide-free green leaf lettuce grown locally." },
+            { id: 4, name: "Farm Fresh Tomatoes (1kg)", category: "Groceries", price: 50, image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80", desc: "Juicy, sun-ripened red tomatoes perfect for curries and salads." },
+            { id: 5, name: "Local Crisp Apples (4pc)", category: "Groceries", price: 140, image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=400&q=80", desc: "Sweet, crunchy premium red apples sourced from regional orchards." },
+            { id: 6, name: "Organic Spinach Bunch", category: "Groceries", price: 30, image: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=400&q=80", desc: "Freshly harvested, iron-rich green spinach leaves." },
+            { id: 7, name: "Fresh Alphonso Mangoes (1kg)", category: "Groceries", price: 250, image: "https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=400&q=80", desc: "Rich, sweet, and fragrant seasonal premium king mangoes." },
+            { id: 8, name: "Baby Carrots Pack", category: "Groceries", price: 45, image: "https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&w=400&q=80", desc: "Sweet, tender, and crunchy carrots, perfect for quick healthy snacking." },
+            { id: 9, name: "Fresh Broccoli Florets", category: "Groceries", price: 90, image: "https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?auto=format&fit=crop&w=400&q=80", desc: "Nutrient-rich, vibrant green broccoli head cut fresh daily." },
+            { id: 10, name: "Local Red Onions (1kg)", category: "Groceries", price: 40, image: "https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&w=400&q=80", desc: "Pungent and flavorful kitchen essential onions from nearby farms." },
+            { id: 11, name: "Sourdough Bread Artisan", category: "Bakery", price: 120, image: "https://images.unsplash.com/photo-1549931319-a545dcf3bc73?auto=format&fit=crop&w=400&q=80", desc: "Freshly baked daily using natural leaven." },
+            { id: 12, name: "Artisanal Chocolate Croissant", category: "Bakery", price: 95, image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=400&q=80", desc: "Flaky, buttery pastry rolled with premium dark chocolate." },
+            { id: 13, name: "Whole Wheat Sandwich Bread", category: "Bakery", price: 55, image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=400&q=80", desc: "Soft, high-fiber loaf perfect for your morning toasts." },
+            { id: 14, name: "Blueberry Crumb Muffins (2pc)", category: "Bakery", price: 110, image: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?auto=format&fit=crop&w=400&q=80", desc: "Moist muffins packed with real blueberries and a streusel top." },
+            { id: 15, name: "Garlic Herb Baguette", category: "Bakery", price: 75, image: "https://images.unsplash.com/photo-1598143153093-f968afb3c636?auto=format&fit=crop&w=400&q=80", desc: "Crusty French baguette infused with fresh garlic and local herbs." },
+            { id: 16, name: "Oatmeal Raisin Cookies (6pc)", category: "Bakery", price: 130, image: "https://images.unsplash.com/photo-1558961309-1d715271609f?auto=format&fit=crop&w=400&q=80", desc: "Chewy, classic baked cookies sweet with plump golden raisins." },
+            { id: 17, name: "Fresh Butter Cookies Pack", category: "Bakery", price: 150, image: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=400&q=80", desc: "Rich melt-in-your-mouth shortbread cookies made with pure dairy butter." },
+            { id: 18, name: "Fresh Country Milk (1L)", category: "Dairy", price: 75, image: "https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=400&q=80", desc: "Pure pasteurized milk straight from local barns." },
+            { id: 19, name: "Farm Fresh Brown Eggs (12pc)", category: "Dairy", price: 110, image: "https://images.unsplash.com/photo-1516448620398-c5f44bf9f441?auto=format&fit=crop&w=400&q=80", desc: "Free-range country eggs delivered daily from local co-ops." },
+            { id: 20, name: "Artisanal Creamy Paneer (200g)", category: "Dairy", price: 90, image: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=400&q=80", desc: "Soft, fresh cottage cheese blocks made from whole milk milkings." },
+            { id: 21, name: "Greek Style Plain Yogurt", category: "Dairy", price: 80, image: "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=400&q=80", desc: "Thick, creamy, and strained probiotic yogurt with zero additives." },
+            { id: 22, name: "Gourmet Salted Butter (500g)", category: "Dairy", price: 260, image: "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&w=400&q=80", desc: "Rich, churned creamery butter made using local traditional methods." },
+            { id: 23, name: "Fresh Mozzarella Ball", category: "Dairy", price: 175, image: "https://images.unsplash.com/photo-1559561853-08451507cbe7?auto=format&fit=crop&w=400&q=80", desc: "Soft, milky white cheese stored in brine—perfect for homemade pizza." },
+            { id: 24, name: "Local Premium Honey", category: "Pantry", price: 350, image: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=400&q=80", desc: "100% pure raw honeycomb farm-harvested honey." },
+            { id: 25, name: "Gourmet Filter Coffee Blend", category: "Pantry", price: 240, image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=400&q=80", desc: "Medium-dark roast coffee grounds sourced from nearby estate hills." },
+            { id: 26, name: "Handmade Strawberry Jam", category: "Pantry", price: 180, image: "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=400&q=80", desc: "Small-batch preserves made with 100% real local fruit and minimal sugar." },
+            { id: 27, name: "Cold Pressed Coconut Oil (500ml)", category: "Pantry", price: 190, image: "https://images.unsplash.com/photo-1614268124046-d211d13f56b3?auto=format&fit=crop&w=400&q=80", desc: "Pure, aromatic unrefined coconut oil extracted using traditional mills." },
+            { id: 28, name: "Organic Roasted Cashews (200g)", category: "Pantry", price: 280, image: "https://images.unsplash.com/photo-1534113414509-0eec2bfb493f?auto=format&fit=crop&w=400&q=80", desc: "Lightly salted, golden roasted premium crunchy cashews." },
+            { id: 29, name: "Spicy Local Mango Pickle", category: "Pantry", price: 120, image: "https://images.unsplash.com/photo-1601050690597-df056fb4ce78?auto=format&fit=crop&w=400&q=80", desc: "Traditional grandmother's recipe pickle cured in mustard oil and spices." },
+            { id: 30, name: "Premium Basmati Rice (1kg)", category: "Pantry", price: 160, image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=400&q=80", desc: "Aromatic, long-grain aged basmati rice for perfect biryanis." }
+        ];
+
+        let cart = [];
+        let currentAuthMode = 'login'; // 'login' or 'register'
+        const BACKEND_URL = 'http://localhost:5000/api/auth';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderProducts(products);
+            setupEventListeners();
+            checkUserSession();
+            lucide.createIcons();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('categoryFilter').addEventListener('change', filterAndSortProducts);
+            document.getElementById('sortFilter').addEventListener('change', filterAndSortProducts);
+            document.getElementById('searchInput').addEventListener('input', filterAndSortProducts);
+        }
+
+        // Render Cards UI
+        function renderProducts(productsToDisplay) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = productsToDisplay.map(product => `
+                <div class="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition flex flex-col group">
+                    <img src="${product.image}" class="w-full h-48 object-cover group-hover:scale-102 transition duration-300">
+                    <div class="p-5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <span class="inline-block text-xs font-semibold px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-full mb-2">${product.category}</span>
+                            <h3 class="font-bold text-base text-gray-900 mb-1">${product.name}</h3>
+                            <p class="text-xs text-gray-500 line-clamp-2 mb-4">${product.desc}</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-gray-50">
+                            <span class="text-lg font-extrabold text-gray-900">₹${product.price}</span>
+                            <button onclick="addToCart(${product.id})" class="bg-gray-900 hover:bg-indigo-600 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition flex items-center gap-1.5">
+                                <i data-lucide="plus" class="h-4 w-4"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function filterAndSortProducts() {
+            const category = document.getElementById('categoryFilter').value;
+            const sort = document.getElementById('sortFilter').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = products.filter(p => {
+                return (category === 'all' || p.category === category) &&
+                       (p.name.toLowerCase().includes(search) || p.desc.toLowerCase().includes(search));
+            });
+
+            if (sort === 'low-high') filtered.sort((a, b) => a.price - b.price);
+            if (sort === 'high-low') filtered.sort((a, b) => b.price - a.price);
+            renderProducts(filtered);
+        }
+
+        // Auth Modal Display States
+        function openAuthModal() {
+            const token = localStorage.getItem('userToken');
+            if(token) {
+                // If token exists, button acts as "Logout"
+                localStorage.removeItem('userToken');
+                localStorage.removeItem('userProfile');
+                checkUserSession();
+                alert("Successfully logged out of your session.");
+                return;
+            }
+            document.getElementById('authModal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function switchAuthTab(tab) {
+            currentAuthMode = tab;
+            const isLogin = tab === 'login';
+            
+            document.getElementById('tabLogin').className = isLogin ? "flex-1 pb-3 text-center font-bold border-b-2 border-indigo-600 text-indigo-600" : "flex-1 pb-3 text-center font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700";
+            document.getElementById('tabRegister').className = !isLogin ? "flex-1 pb-3 text-center font-bold border-b-2 border-indigo-600 text-indigo-600" : "flex-1 pb-3 text-center font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700";
+            
+            document.getElementById('nameField').classList.toggle('hidden', isLogin);
+            document.getElementById('authSubmitBtn').innerText = isLogin ? "Log In Securely" : "Create Account";
+        }
+
+        // Bridge Async Network Request API Handles
+        async function handleAuthSubmit(event) {
+            event.preventDefault();
+            const name = document.getElementById('authName').value;
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+
+            const endpoint = currentAuthMode === 'login' ? `${BACKEND_URL}/login` : `${BACKEND_URL}/register`;
+            const payload = currentAuthMode === 'login' ? { email, password } : { name, email, password };
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.message || "Operation connection failed.");
+
+                if (currentAuthMode === 'login') {
+                    localStorage.setItem('userToken', data.token);
+                    localStorage.setItem('userProfile', JSON.stringify(data.user));
+                    checkUserSession();
+                    closeAuthModal();
+                    alert("Authentication authorized successfully!");
+                } else {
+                    alert("Account registered! Switching to login option.");
+                    switchAuthTab('login');
+                }
+            } catch (err) {
+                alert(`Security Gate Error: ${err.message}`);
+            }
+        }
+
+        function checkUserSession() {
+            const token = localStorage.getItem('userToken');
+            const profile = JSON.parse(localStorage.getItem('userProfile'));
+            
+            if (token && profile) {
+                document.getElementById('authBtnText').innerText = `Logout (${profile.name})`;
+                document.getElementById('authBtn').classList.replace('bg-gray-100', 'bg-green-50');
+            } else {
+                document.getElementById('authBtnText').innerText = "Login / Sign Up";
+                document.getElementById('authBtn').className = "flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-indigo-600 bg-gray-100 hover:bg-indigo-50 px-4 py-2 rounded-xl transition focus:outline-none";
+            }
+        }
+
+        // Cart Controllers
+        function toggleCart() { document.getElementById('cartDrawer').classList.toggle('hidden'); }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const item = cart.find(i => i.id === productId);
+            if (item) item.quantity += 1; else cart.push({ ...product, quantity: 1 });
+            updateCartUI();
+        }
+
+        function updateQuantity(productId, delta) {
+            const item = cart.find(i => i.id === productId);
+            if (!item) return;
+            item.quantity += delta;
+            if (item.quantity <= 0) cart = cart.filter(i => i.id !== productId);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const list = document.getElementById('cartItemsList');
+            const count = cart.reduce((s, i) => s + i.quantity, 0);
+            const total = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
+
+            document.getElementById('cartBadge').innerText = count;
+            document.getElementById('cartBadge').classList.toggle('hidden', count === 0);
+
+            if (cart.length === 0) {
+                list.innerHTML = `<div class="text-center py-12 text-gray-400">Cart is empty.</div>`;
+            } else {
+                list.innerHTML = cart.map(item => `
+                    <div class="flex gap-4 bg-gray-50 p-3 rounded-xl border items-center">
+                        <img src="${item.image}" class="w-12 h-12 object-cover rounded-md">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-semibold text-xs text-gray-900 truncate">${item.name}</h4>
+                            <div class="flex justify-between items-center mt-2">
+                                <div class="flex items-center gap-2 bg-white rounded border px-1">
+                                    <button onclick="updateQuantity(${item.id}, -1)">-</button>
+                                    <span class="text-xs font-bold">${item.quantity}</span>
+                                    <button onclick="updateQuantity(${item.id}, 1)">+</button>
+                                </div>
+                                <span class="text-xs font-bold text-gray-800">₹${item.price * item.quantity}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('cartTotal').innerText = `₹${total.toFixed(2)}`;
+            lucide.createIcons();
+        }
+
+        // Protected Checkout Mechanism Router Validation Route
+        async function checkout() {
+            const token = localStorage.getItem('userToken');
+            if(!token) {
+                alert("🔒 Access Denied: You must be securely Logged In to place an order!");
+                openAuthModal();
+                return;
+            }
+
+            // Route verification handshake simulation to server gateway API
+            try {
+                const res = await fetch('http://localhost:5000/api/orders/my-history', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if(res.status === 401 || res.status === 403) throw new Error("Session expired.");
+                
+                alert("🎉 Secure Authorization Validated! Your order has been placed through the protected gateway route.");
+                cart = [];
+                updateCartUI();
+                toggleCart();
+            } catch(err) {
+                alert("Session invalid. Logging out.");
+                localStorage.clear();
+                checkUserSession();
+            }
+        }
+    </script>
+</body>
+</html>
