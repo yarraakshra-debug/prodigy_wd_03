@@ -330,7 +330,7 @@
         async function checkout() {
             const token = localStorage.getItem('userToken');
             if(!token) {
-                alert("🔒 Access Denied: You must be securely Logged In to place an order!");
+                alert(" Access Denied: You must be securely Logged In to place an order!");
                 openAuthModal();
                 return;
             }
@@ -343,7 +343,7 @@
                 });
                 if(res.status === 401 || res.status === 403) throw new Error("Session expired.");
                 
-                alert("🎉 Secure Authorization Validated! Your order has been placed through the protected gateway route.");
+                alert(" Secure Authorization Validated! Your order has been placed through the protected gateway route.");
                 cart = [];
                 updateCartUI();
                 toggleCart();
